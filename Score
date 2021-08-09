@@ -1,0 +1,37 @@
+import pandas as pd
+from risk_model.utils.utils import cast_columns
+
+def int_score(input_df: pd.DataFrame) -> pd.DataFrame:
+    """Preprocesses the data for score.
+
+    Args:
+        input_df: Raw data.
+    Returns:
+        Preprocessed data with renaming and column casting.
+    """
+    # Rename Columns
+    cols_dict = {
+    'FECHA_PROCESO': 'processed_dt',
+    'CIF_CUST_SURR_ID': 'customer_id',
+    'SCORE_CLIENTE': 'score_num',
+    'NIVEL_RIEGO_CTE': 'risk_level_typ'
+    }
+    
+     # Filter
+    filtered_df = input_df[(~input_df['CIF_CUST_SURR_ID'].isnull())]
+    
+    renamed_df = filtered_df.rename(columns=cols_dict)
+    
+    cast_cols_list = [
+        {'column_name': 'processed_dt', 'cast_typ': 'date', 'date_format': '%m/%d/%Y %H:%M:%S %p'},
+        {'column_name': 'score_num', 'cast_typ': 'number'}
+    ]
+    
+    # Cast columns
+    cast_df = cast_columns(input_df=renamed_df, columns_dict=cast_cols_list)
+    
+    # Strip spaces
+    cast_df = cast_df.applymap(lambda s: s.lower().strip() if isinstance(s, str) else s)
+    
+    return cast_df
+    
